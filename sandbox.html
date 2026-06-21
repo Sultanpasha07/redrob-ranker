@@ -1,302 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Redrob Candidate Ranker — team-hydra</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redrob Candidate Ranker - team-hydra</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#0f0f13;color:#e2e8f0;min-height:100vh;padding:24px}
-h1{font-size:1.5rem;font-weight:700;color:#a78bfa;margin-bottom:4px}
-.sub{color:#94a3b8;font-size:.875rem;margin-bottom:12px}
-.team{display:inline-block;background:#1e1e2e;border:1px solid #2d2d3d;border-radius:20px;padding:4px 14px;font-size:.75rem;color:#a78bfa;margin-bottom:20px}
-.card{background:#1e1e2e;border:1px solid #2d2d3d;border-radius:12px;padding:20px;margin-bottom:20px}
-.tabs{display:flex;gap:8px;margin-bottom:16px}
-.tab{padding:8px 16px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid #2d2d3d;background:transparent;color:#64748b}
-.tab.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
-.panel{display:none}.panel.active{display:block}
-.drop{border:2px dashed #2d2d3d;border-radius:10px;padding:40px 20px;text-align:center;cursor:pointer;background:#13131e}
-.drop:hover,.drop.over{border-color:#7c3aed;background:#1a1228}
-.drop p{color:#64748b;font-size:.875rem;margin-top:8px}
-.drop strong{color:#a78bfa}
-.finfo{display:none;align-items:center;gap:10px;background:#13131e;border:1px solid #2d2d3d;border-radius:8px;padding:12px 16px;margin-top:12px;font-size:.8rem;color:#94a3b8}
-.finfo.show{display:flex}
-.fname{color:#e2e8f0;font-weight:600}
-.fclear{margin-left:auto;background:transparent;border:none;color:#f87171;cursor:pointer;font-size:1.1rem}
-label{display:block;font-size:.8rem;font-weight:600;color:#94a3b8;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
-textarea{width:100%;background:#13131e;border:1px solid #2d2d3d;border-radius:8px;color:#e2e8f0;padding:12px;font-family:monospace;font-size:.8rem;resize:vertical;min-height:140px;outline:none}
-textarea:focus{border-color:#a78bfa}
-.note{font-size:.75rem;color:#64748b;margin-top:8px}
-.row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
-button{background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.875rem;font-weight:600;cursor:pointer}
+body{font-family:Arial,sans-serif;background:#111;color:#ddd;padding:20px;max-width:900px;margin:auto}
+h1{color:#a78bfa;font-size:1.4rem}
+p.sub{color:#888;font-size:.85rem;margin:4px 0 16px}
+.box{background:#1e1e2e;border:1px solid #333;border-radius:10px;padding:20px;margin-bottom:16px}
+h2{color:#94a3b8;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+textarea{width:100%;background:#111;border:1px solid #444;border-radius:6px;color:#ddd;padding:10px;font-family:monospace;font-size:.8rem;box-sizing:border-box}
+input[type=file]{color:#ddd;padding:8px;background:#111;border:1px solid #444;border-radius:6px;width:100%;box-sizing:border-box;cursor:pointer}
+button{background:#7c3aed;color:#fff;border:none;border-radius:6px;padding:10px 22px;font-size:.9rem;font-weight:700;cursor:pointer;margin-right:10px}
 button:hover{background:#6d28d9}
-button:disabled{opacity:.4;cursor:not-allowed}
-.sec{background:transparent;border:1px solid #2d2d3d;color:#94a3b8;padding:8px 14px;font-size:.8rem}
-.sec:hover{border-color:#a78bfa;color:#a78bfa;background:transparent}
-.st{font-size:.8rem;color:#64748b}
-.st.ok{color:#34d399}.st.err{color:#f87171}
-.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
-.stat{background:#13131e;border:1px solid #2d2d3d;border-radius:8px;padding:10px 16px;font-size:.8rem}
-.stat span{display:block;color:#64748b;font-size:.7rem;margin-bottom:2px}
-.stat strong{color:#e2e8f0;font-size:1rem}
-.tbl-wrap{max-height:500px;overflow-y:auto;border-radius:8px;border:1px solid #2d2d3d}
-table{width:100%;border-collapse:collapse;font-size:.8rem}
-th{background:#13131e;color:#94a3b8;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid #2d2d3d;text-transform:uppercase;font-size:.7rem;position:sticky;top:0;z-index:1}
-td{padding:10px 12px;border-bottom:1px solid #1a1a2e;vertical-align:top}
-tr:hover td{background:#1a1a28}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:600}
-.high{background:#14532d;color:#4ade80}
-.mid{background:#1e3a5f;color:#60a5fa}
-.low{background:#3b1515;color:#f87171}
-#resultCard{display:none}
-#dlBtn{display:none}
+button.dl{background:#1e3a5f;display:none}
+.msg{display:inline;font-size:.85rem;color:#888}
+.ok{color:#4ade80}.err{color:#f87171}
+table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:12px}
+th{background:#1a1a2e;color:#888;padding:8px 10px;text-align:left;border-bottom:1px solid #333;font-size:.75rem;text-transform:uppercase}
+td{padding:8px 10px;border-bottom:1px solid #222;vertical-align:top}
+tr:hover td{background:#1a1228}
+.hi{color:#4ade80;font-weight:700}
+.mi{color:#60a5fa;font-weight:700}
+.lo{color:#f87171;font-weight:700}
+#out{display:none}
 </style>
 </head>
 <body>
-<h1>Redrob Candidate Ranker</h1>
-<p class="sub">Sandbox - India Runs Data and AI Challenge - Senior AI Engineer role</p>
-<span class="team">team-hydra</span>
 
-<div class="card">
-  <div class="tabs">
-    <button class="tab active" onclick="setTab('upload')">Upload .jsonl File</button>
-    <button class="tab" onclick="setTab('paste')">Paste JSON</button>
-  </div>
-  <div class="panel active" id="p-upload">
-    <div class="drop" id="dropZone" onclick="document.getElementById('fi').click()"
-      ondragover="event.preventDefault();this.classList.add('over')"
-      ondragleave="this.classList.remove('over')"
-      ondrop="onDrop(event)">
-      <p><strong>Click to upload</strong> or drag and drop</p>
-      <p>Accepts .jsonl or .json - max 100 candidates</p>
-      <input type="file" id="fi" accept=".jsonl,.json" style="display:none" onchange="onFilePick(event)"/>
-    </div>
-    <div class="finfo" id="finfo">
-      <span>File:</span>
-      <span class="fname" id="fname"></span>
-      <span id="fcount"></span>
-      <button class="fclear" onclick="clearFile()">X</button>
-    </div>
-    <p class="note">Upload sample_candidates.json from the hackathon ZIP (rename to .jsonl), or click "Load sample" below.</p>
-  </div>
-  <div class="panel" id="p-paste">
-    <label>Paste JSONL - one candidate per line</label>
-    <textarea id="txt" placeholder='{"candidate_id":"CAND_0000001","profile":{...},...}'></textarea>
-    <p class="note">Each line = one JSON candidate object from candidates.jsonl</p>
-  </div>
-  <div class="row">
-    <button id="rankBtn" onclick="doRank()">Rank Candidates</button>
-    <button class="sec" onclick="loadSample()">Load sample (3 candidates)</button>
-    <button class="sec" id="dlBtn" onclick="doDownload()">Download CSV</button>
-    <span class="st" id="st"></span>
-  </div>
+<h1>Redrob Candidate Ranker</h1>
+<p class="sub">team-hydra &mdash; India Runs Data &amp; AI Challenge &mdash; Senior AI Engineer role</p>
+
+<div class="box">
+  <h2>Option 1: Upload a .jsonl or .json file</h2>
+  <input type="file" id="fi" accept=".jsonl,.json">
+  <p style="color:#666;font-size:.78rem;margin-top:6px">Use sample_candidates.json from the hackathon ZIP (up to 100 candidates)</p>
 </div>
 
-<div class="card" id="resultCard">
-  <label>Results</label>
-  <div class="summary" id="summary"></div>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr>
-        <th style="width:50px">Rank</th>
-        <th style="width:72px">Score</th>
-        <th style="width:130px">Candidate ID</th>
-        <th style="width:64px">Fit</th>
-        <th>Reasoning</th>
-      </tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
+<div class="box">
+  <h2>Option 2: Paste JSON directly (one candidate per line)</h2>
+  <textarea id="txt" rows="8" placeholder='Paste JSONL here - one JSON object per line. Click "Load 3 sample candidates" below to try instantly.'></textarea>
+</div>
+
+<div style="margin-bottom:20px">
+  <button onclick="rank()">Rank Candidates</button>
+  <button onclick="sample()">Load 3 sample candidates</button>
+  <button class="dl" id="dlBtn" onclick="dl()">Download CSV</button>
+  <br><br>
+  <span class="msg" id="msg"></span>
+</div>
+
+<div id="out" class="box">
+  <h2>Results</h2>
+  <div id="stats" style="margin-bottom:12px;font-size:.85rem;color:#888"></div>
+  <table>
+    <thead><tr><th>Rank</th><th>Score</th><th>Candidate ID</th><th>Fit</th><th>Reasoning</th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table>
 </div>
 
 <script>
-var activeTab='upload', uploadedLines=null, lastResults=[];
+var results = [];
 
-function setTab(t){
-  activeTab=t;
-  document.querySelectorAll('.tab').forEach(function(el,i){el.classList.toggle('active',(i===0&&t==='upload')||(i===1&&t==='paste'));});
-  document.getElementById('p-upload').classList.toggle('active',t==='upload');
-  document.getElementById('p-paste').classList.toggle('active',t==='paste');
-}
-
-function onDrop(ev){ev.preventDefault();document.getElementById('dropZone').classList.remove('over');var f=ev.dataTransfer.files[0];if(f)readFile(f);}
-function onFilePick(ev){var f=ev.target.files[0];if(f)readFile(f);}
-
-function readFile(file){
-  var r=new FileReader();
-  r.onload=function(e){
-    var lines=e.target.result.split('\n').map(function(l){return l.trim();}).filter(Boolean);
-    uploadedLines=lines;
-    document.getElementById('fname').textContent=file.name;
-    document.getElementById('fcount').textContent='('+lines.length+' candidates)';
-    document.getElementById('finfo').classList.add('show');
-    setSt(lines.length>100?'Warning: only first 100 will be ranked':lines.length+' candidates loaded - click Rank',lines.length>100?'err':'ok');
+document.getElementById('fi').onchange = function(e) {
+  var f = e.target.files[0];
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function(ev) {
+    document.getElementById('txt').value = ev.target.result.split('\n').map(function(l){return l.trim();}).filter(Boolean).slice(0, 100).join('\n');
+    msg('File loaded: ' + f.name + ' - click Rank Candidates', 'ok');
   };
-  r.readAsText(file);
+  r.readAsText(f);
+};
+
+function msg(text, cls) {
+  var el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + (cls || '');
 }
 
-function clearFile(){uploadedLines=null;document.getElementById('finfo').classList.remove('show');document.getElementById('fi').value='';setSt('');}
+var REQ = ["sentence transformers","embeddings","embedding","pinecone","weaviate","qdrant","milvus","opensearch","elasticsearch","faiss","chromadb","pgvector","ranking","information retrieval","bm25","learning to rank","ndcg","mrr","reranking","hybrid search","nlp","natural language processing","transformers","bert","llm","rag","retrieval augmented generation","semantic search","neural search","python","a/b testing"];
+var PREF = ["fine-tuning","lora","qlora","peft","xgboost","pytorch","tensorflow","mlops","docker","kubernetes","recommendation systems","machine learning","deep learning","sql","aws","gcp"];
+var STRONG = ["ai engineer","ml engineer","machine learning engineer","senior ml engineer","senior ai engineer","applied scientist","nlp engineer","data scientist","senior data scientist","llm engineer","rag engineer","deep learning engineer"];
+var MEDIUM = ["software engineer","backend engineer","full stack engineer","data engineer","analytics engineer","senior software engineer","lead engineer","staff engineer","principal engineer","tech lead"];
+var SVCS = ["tcs","infosys","wipro","accenture","cognizant","capgemini","hcl","tech mahindra","mphasis","hexaware","mindtree","ltimindtree"];
 
-function getLines(){
-  if(activeTab==='upload')return uploadedLines;
-  var raw=document.getElementById('txt').value.trim();
-  return raw?raw.split('\n').map(function(l){return l.trim();}).filter(Boolean):null;
-}
+function has(arr, s) { return arr.some(function(x){return s.indexOf(x)>=0||x.indexOf(s)>=0;}); }
 
-var REQ=["sentence transformers","sentence-transformers","embeddings","embedding","pinecone","weaviate","qdrant","milvus","opensearch","elasticsearch","faiss","chromadb","pgvector","annoy","ranking","information retrieval","bm25","learning to rank","ndcg","mrr","reranking","hybrid search","hybrid retrieval","nlp","natural language processing","transformers","bert","llm","large language models","rag","retrieval augmented generation","semantic search","neural search","python","a/b testing","offline evaluation"];
-var PREF=["fine-tuning llms","fine tuning","lora","qlora","peft","xgboost","pytorch","tensorflow","mlops","docker","kubernetes","recommendation systems","feature engineering","machine learning","deep learning","statistical modeling","sql","aws","gcp"];
-var STRONG=["ai engineer","ml engineer","machine learning engineer","senior ml engineer","senior ai engineer","applied scientist","applied ml scientist","research scientist","nlp engineer","data scientist","senior data scientist","llm engineer","rag engineer","deep learning engineer","senior applied scientist","applied ml engineer","senior nlp engineer"];
-var MEDIUM=["software engineer","backend engineer","full stack engineer","data engineer","analytics engineer","senior software engineer","lead engineer","staff engineer","principal engineer","tech lead"];
-var SVCS=["tcs","tata consultancy","infosys","wipro","accenture","cognizant","capgemini","hcl","tech mahindra","mphasis","hexaware","mindtree","ltimindtree"];
-
-function hasAny(arr,str){return arr.some(function(x){return str.indexOf(x)>=0||x.indexOf(str)>=0;});}
-
-function honeypot(c){
-  var sk=c.skills||[],cr=c.career_history||[],yoe=(c.profile||{}).years_of_experience||0;
-  if(sk.filter(function(s){return s.proficiency==='expert'&&(s.duration_months||0)===0;}).length>=3)return true;
-  if(sk.filter(function(s){return s.proficiency==='expert';}).length>8)return true;
-  var tm=cr.reduce(function(a,r){return a+(r.duration_months||0);},0);
-  if(yoe>5&&tm<24)return true;
+function honeypot(c) {
+  var sk = c.skills || [], cr = c.career_history || [], yoe = (c.profile||{}).years_of_experience || 0;
+  if (sk.filter(function(s){return s.proficiency==='expert'&&(s.duration_months||0)===0;}).length >= 3) return true;
+  if (sk.filter(function(s){return s.proficiency==='expert';}).length > 8) return true;
+  var tm = cr.reduce(function(a,r){return a+(r.duration_months||0);},0);
+  if (yoe > 5 && tm < 24) return true;
   return false;
 }
 
-function scoreSkills(c){
-  var sk=c.skills||[],as=((c.redrob_signals||{}).skill_assessment_scores)||{};
-  var total=0,matched=[];
-  var pm={beginner:.4,intermediate:.7,advanced:.9,expert:1.0};
-  for(var i=0;i<sk.length;i++){
-    var s=sk[i],nl=s.name.toLowerCase();
-    var prof=pm[s.proficiency]||.4,dur=Math.min(1,(s.duration_months||0)/24)||.3,end=Math.min(1,.5+(s.endorsements||0)/40);
-    var bonus=0;
-    for(var k in as){if(k.toLowerCase().indexOf(nl)>=0||nl.indexOf(k.toLowerCase())>=0){bonus=(as[k]/100)*.2;break;}}
-    var trust=prof*dur*end+bonus;
-    if(hasAny(REQ,nl)){matched.push(s.name);total+=2*trust;}
-    else if(hasAny(PREF,nl)){total+=trust;}
+function scoreSkills(c) {
+  var sk = c.skills || [], as = ((c.redrob_signals||{}).skill_assessment_scores)||{};
+  var total = 0, matched = [];
+  var pm = {beginner:.4,intermediate:.7,advanced:.9,expert:1.0};
+  for (var i = 0; i < sk.length; i++) {
+    var s = sk[i], nl = s.name.toLowerCase();
+    var prof = pm[s.proficiency]||.4, dur = Math.min(1,(s.duration_months||0)/24)||.3;
+    var end = Math.min(1,.5+(s.endorsements||0)/40), bonus = 0;
+    for (var k in as) { if (k.toLowerCase().indexOf(nl)>=0||nl.indexOf(k.toLowerCase())>=0) { bonus=(as[k]/100)*.2; break; } }
+    var trust = prof*dur*end+bonus;
+    if (has(REQ, nl)) { matched.push(s.name); total += 2*trust; }
+    else if (has(PREF, nl)) { total += trust; }
   }
-  var ak=Object.keys(as);
-  if(ak.length){var avg=ak.reduce(function(a,k){return a+as[k];},0)/ak.length;total=Math.min(1,total/12+(avg/100)*.1);}
-  else total=Math.min(1,total/12);
-  return [total,matched.slice(0,4)];
+  var ak = Object.keys(as);
+  if (ak.length) { var avg=ak.reduce(function(a,k){return a+as[k];},0)/ak.length; total=Math.min(1,total/12+(avg/100)*.1); }
+  else total = Math.min(1,total/12);
+  return [total, matched.slice(0,4)];
 }
 
-function scoreTitleCareer(c){
-  var p=c.profile||{},cr=c.career_history||[],ct=(p.current_title||'').toLowerCase();
-  var ts=hasAny(STRONG,ct)?1:hasAny(MEDIUM,ct)?.55:ct.indexOf('analyst')>=0?.3:['manager','accountant','designer','writer','support','sales','hr','civil','mechanical','operations'].some(function(w){return ct.indexOf(w)>=0;})?.05:.2;
-  var bonus=0,allSvc=cr.length>=2;
-  for(var i=0;i<cr.length;i++){
-    var r=cr[i],co=(r.company||'').toLowerCase(),rt=(r.title||'').toLowerCase(),desc=(r.description||'').toLowerCase(),dur=r.duration_months||0;
-    if(!SVCS.some(function(s){return co.indexOf(s)>=0;}))allSvc=false;
-    var isAI=hasAny(STRONG,rt),isMed=hasAny(MEDIUM,rt);
+function scoreTitleCareer(c) {
+  var p = c.profile||{}, cr = c.career_history||[], ct = (p.current_title||'').toLowerCase();
+  var ts = has(STRONG,ct)?1:has(MEDIUM,ct)?.55:ct.indexOf('analyst')>=0?.3:['manager','designer','writer','support','sales','hr','civil','mechanical'].some(function(w){return ct.indexOf(w)>=0;})?.05:.2;
+  var bonus = 0, allSvc = cr.length >= 2;
+  for (var i=0; i<cr.length; i++) {
+    var r=cr[i], co=(r.company||'').toLowerCase(), rt=(r.title||'').toLowerCase(), desc=(r.description||'').toLowerCase(), dur=r.duration_months||0;
+    if (!SVCS.some(function(s){return co.indexOf(s)>=0;})) allSvc = false;
+    var isAI=has(STRONG,rt), isMed=has(MEDIUM,rt);
     var aiD=["embeddings","vector","ranking","retrieval","nlp","transformer","pytorch","tensorflow","rag","recommendation","search","llm","fine-tun"].filter(function(k){return desc.indexOf(k)>=0;}).length;
-    if(isAI&&dur>=6)bonus+=.15;
-    else if(isMed&&aiD>=3&&dur>=6)bonus+=.10;
-    else if(aiD>=4)bonus+=.06;
+    if (isAI&&dur>=6) bonus+=.15;
+    else if (isMed&&aiD>=3&&dur>=6) bonus+=.10;
+    else if (aiD>=4) bonus+=.06;
   }
-  if(allSvc){ts*=.6;bonus*=.6;}
+  if (allSvc) { ts*=.6; bonus*=.6; }
   return Math.min(1,ts+Math.min(.4,bonus));
 }
 
-function scoreExp(c){var y=(c.profile||{}).years_of_experience||0;return y>=5&&y<=9?1:(y>=4||y<=11)&&y!==y?.8:y>=4&&y<5||y>9&&y<=11?.8:y>=3&&y<4||y>11&&y<=13?.6:y>=2&&y<3||y>13&&y<=15?.4:.2;}
+function scoreExp(c) {
+  var y=(c.profile||{}).years_of_experience||0;
+  return y>=5&&y<=9?1:y>=4&&y<5||y>9&&y<=11?.8:y>=3&&y<4||y>11&&y<=13?.6:y>=2&&y<3||y>13&&y<=15?.4:.2;
+}
 
-function scoreBehavioral(c){
-  var s=c.redrob_signals||{},today=new Date('2026-06-21'),sc=0;
-  sc+=(s.open_to_work_flag?1:0)*.25;
+function scoreBeh(c) {
+  var s=c.redrob_signals||{}, sc=0, today=new Date('2026-06-21');
+  sc += (s.open_to_work_flag?1:0)*.25;
   var la=s.last_active_date?(today-new Date(s.last_active_date))/864e5:999;
-  sc+=(la<=30?1:la<=90?.8:la<=180?.5:la<=365?.3:0)*.20;
-  sc+=Math.min(1,(s.recruiter_response_rate||0)/.5)*.15;
-  sc+=((s.profile_completeness_score||0)/100)*.10;
-  var gh=s.github_activity_score!=null?s.github_activity_score:-1;sc+=(gh>=0?gh/100:0)*.10;
-  sc+=(s.interview_completion_rate||0)*.08;
-  sc+=Math.min(1,(s.saved_by_recruiters_30d||0)/10)*.07;
-  var n=s.notice_period_days!=null?s.notice_period_days:60;sc+=(n<=30?1:n<=60?.7:n<=90?.4:.2)*.05;
+  sc += (la<=30?1:la<=90?.8:la<=180?.5:la<=365?.3:0)*.20;
+  sc += Math.min(1,(s.recruiter_response_rate||0)/.5)*.15;
+  sc += ((s.profile_completeness_score||0)/100)*.10;
+  var gh=s.github_activity_score!=null?s.github_activity_score:-1; sc+=(gh>=0?gh/100:0)*.10;
+  sc += (s.interview_completion_rate||0)*.08;
+  sc += Math.min(1,(s.saved_by_recruiters_30d||0)/10)*.07;
+  var n=s.notice_period_days!=null?s.notice_period_days:60; sc+=(n<=30?1:n<=60?.7:n<=90?.4:.2)*.05;
   return sc;
 }
 
-function scoreEdu(c){
-  var edu=c.education||[];if(!edu.length)return .3;
-  var tm={tier_1:1,tier_2:.75,tier_3:.5,tier_4:.3,unknown:.35},best=0;
-  for(var i=0;i<edu.length;i++){
-    var e=edu[i],t=tm[e.tier]||.3,f=(e.field_of_study||'').toLowerCase();
+function scoreEdu(c) {
+  var edu=c.education||[]; if(!edu.length) return .3;
+  var tm={tier_1:1,tier_2:.75,tier_3:.5,tier_4:.3,unknown:.35}, best=0;
+  for (var i=0; i<edu.length; i++) {
+    var e=edu[i], t=tm[e.tier]||.3, f=(e.field_of_study||'').toLowerCase();
     var ai=["computer science","machine learning","artificial intelligence","data science","statistics","mathematics","information technology","electronics","electrical"].some(function(x){return f.indexOf(x)>=0;});
     best=Math.max(best,t*.5+(ai?1:.5)*.3+.7*.2);
   }
   return best;
 }
 
-function computeScore(c){
-  if(honeypot(c))return [0.01,'Honeypot: impossible profile signals detected.'];
-  var sr=scoreSkills(c),skillS=sr[0],matched=sr[1];
-  var titleS=scoreTitleCareer(c),expS=scoreExp(c),behS=scoreBehavioral(c),eduS=scoreEdu(c);
-  var comp=skillS*.35+titleS*.30+expS*.10+behS*.18+eduS*.07;
-  var s=c.redrob_signals||{},p=c.profile||{};
-  if(!s.open_to_work_flag&&behS<.3)comp*=.75;
-  comp=Math.max(0,Math.min(1,comp));
-  var title=p.current_title||'N/A',years=p.years_of_experience||0,rr=s.recruiter_response_rate||0;
-  var la=s.last_active_date||'N/A',notice=s.notice_period_days!=null?s.notice_period_days:'N/A';
-  var sk=matched.length?matched.slice(0,3).join(', '):'no core AI skills';
-  var parts=[
-    titleS>=.8?'Strong AI/ML title ('+title+')':titleS>=.5?'Adjacent title ('+title+')':'Non-technical title ('+title+')',
-    years+'yr exp',matched.length?'Skills: '+sk:'No core AI skill match',
-    'Response rate '+Math.round(rr*100)+'%',s.open_to_work_flag?'Open to work':'Not open to work',
-    notice+'d notice, last active '+la
-  ];
-  return [Math.round(comp*1e4)/1e4,parts.join('; ')+'.'];
+function compute(c) {
+  if (honeypot(c)) return [0.01, 'Honeypot flag: impossible profile signals.'];
+  var sr=scoreSkills(c), skillS=sr[0], matched=sr[1];
+  var titleS=scoreTitleCareer(c), expS=scoreExp(c), behS=scoreBeh(c), eduS=scoreEdu(c);
+  var s=skillS*.35+titleS*.30+expS*.10+behS*.18+eduS*.07;
+  var sig=c.redrob_signals||{}, p=c.profile||{};
+  if (!sig.open_to_work_flag && behS<.3) s*=.75;
+  s=Math.max(0,Math.min(1,s));
+  var title=p.current_title||'N/A', yoe=p.years_of_experience||0;
+  var rr=sig.recruiter_response_rate||0, notice=sig.notice_period_days!=null?sig.notice_period_days:'N/A';
+  var skText=matched.length?'Skills: '+matched.slice(0,3).join(', '):'No core AI skills';
+  var why=[titleS>=.8?'Strong AI/ML title ('+title+')':titleS>=.5?'Adjacent title ('+title+')':'Non-tech title ('+title+')',yoe+'yr exp',skText,'Response rate '+Math.round(rr*100)+'%',(sig.open_to_work_flag?'Open to work':'Not open'),notice+'d notice'];
+  return [Math.round(s*1e4)/1e4, why.join('; ')];
 }
 
-function doRank(){
-  var lines=getLines();
-  if(!lines||!lines.length){setSt(activeTab==='upload'?'Please upload a .jsonl file first':'Please paste candidates first','err');return;}
-  var capped=lines.slice(0,100);
-  setSt('Scoring '+capped.length+' candidates...');
-  document.getElementById('rankBtn').disabled=true;
-  setTimeout(function(){
-    try{
-      var cands=capped.map(function(l,i){try{return JSON.parse(l);}catch(e){throw new Error('Line '+(i+1)+' is not valid JSON');}});
-      var scored=cands.map(function(c){var r=computeScore(c);return {candidate_id:c.candidate_id||'UNKNOWN',score:r[0],reasoning:r[1]};});
-      scored.sort(function(a,b){return b.score-a.score||a.candidate_id.localeCompare(b.candidate_id);});
-      lastResults=scored.map(function(s,i){return {candidate_id:s.candidate_id,score:s.score,reasoning:s.reasoning,rank:i+1};});
-      renderResults(lastResults,cands.length,lines.length);
-      document.getElementById('dlBtn').style.display='inline-block';
-      setSt('Ranked '+cands.length+' candidates'+(lines.length>100?' (showing top 100 of '+lines.length+')':''),'ok');
-    }catch(e){setSt('Error: '+e.message,'err');}
-    document.getElementById('rankBtn').disabled=false;
-  },10);
+function rank() {
+  var raw = document.getElementById('txt').value.trim();
+  if (!raw) { msg('Please upload a file OR paste JSON candidates first', 'err'); return; }
+  var lines = raw.split('\n').map(function(l){return l.trim();}).filter(Boolean).slice(0,100);
+  msg('Scoring ' + lines.length + ' candidates...', '');
+  setTimeout(function() {
+    try {
+      var cands = lines.map(function(l,i) {
+        try { return JSON.parse(l); }
+        catch(e) { throw new Error('Line ' + (i+1) + ' is not valid JSON. Make sure each line is a complete JSON object.'); }
+      });
+      var scored = cands.map(function(c) {
+        var r = compute(c);
+        return {id: c.candidate_id||'UNKNOWN', score: r[0], why: r[1]};
+      });
+      scored.sort(function(a,b){return b.score-a.score||a.id.localeCompare(b.id);});
+      results = scored.map(function(s,i){return {rank:i+1,id:s.id,score:s.score,why:s.why};});
+      renderTable(results, cands.length);
+      document.getElementById('dlBtn').style.display = 'inline-block';
+      msg('Done! Ranked ' + cands.length + ' candidates.', 'ok');
+    } catch(e) {
+      msg('Error: ' + e.message, 'err');
+    }
+  }, 10);
 }
 
-function renderResults(rows,total,origLen){
-  var high=rows.filter(function(r){return r.score>=.7;}).length;
-  var mid=rows.filter(function(r){return r.score>=.4&&r.score<.7;}).length;
-  var low=rows.filter(function(r){return r.score<.4;}).length;
-  document.getElementById('summary').innerHTML=
-    '<div class="stat"><span>Ranked</span><strong>'+total+'</strong></div>'+
-    '<div class="stat"><span>High fit (0.7+)</span><strong style="color:#4ade80">'+high+'</strong></div>'+
-    '<div class="stat"><span>Mid fit (0.4-0.7)</span><strong style="color:#60a5fa">'+mid+'</strong></div>'+
-    '<div class="stat"><span>Low fit (&lt;0.4)</span><strong style="color:#f87171">'+low+'</strong></div>'+
-    '<div class="stat"><span>Top score</span><strong style="color:#a78bfa">'+(rows[0]?rows[0].score.toFixed(4):'n/a')+'</strong></div>';
-  document.getElementById('tbody').innerHTML=rows.map(function(r){
-    var b=r.score>=.7?'<span class="badge high">High</span>':r.score>=.4?'<span class="badge mid">Mid</span>':'<span class="badge low">Low</span>';
-    return '<tr><td style="font-weight:700;color:#a78bfa">#'+r.rank+'</td><td style="color:#34d399;font-weight:600">'+r.score.toFixed(4)+'</td><td style="font-family:monospace;color:#60a5fa">'+r.candidate_id+'</td><td>'+b+'</td><td style="color:#94a3b8;line-height:1.5">'+r.reasoning+'</td></tr>';
+function renderTable(rows, total) {
+  var hi=rows.filter(function(r){return r.score>=.7;}).length;
+  var mi=rows.filter(function(r){return r.score>=.4&&r.score<.7;}).length;
+  var lo=rows.filter(function(r){return r.score<.4;}).length;
+  document.getElementById('stats').innerHTML = 'Total: <b>' + total + '</b> &nbsp;|&nbsp; High fit (0.7+): <b style="color:#4ade80">' + hi + '</b> &nbsp;|&nbsp; Mid (0.4-0.7): <b style="color:#60a5fa">' + mi + '</b> &nbsp;|&nbsp; Low: <b style="color:#f87171">' + lo + '</b> &nbsp;|&nbsp; Top score: <b style="color:#a78bfa">' + (rows[0]?rows[0].score.toFixed(4):'—') + '</b>';
+  document.getElementById('tb').innerHTML = rows.map(function(r) {
+    var cls=r.score>=.7?'hi':r.score>=.4?'mi':'lo';
+    var fit=r.score>=.7?'High':r.score>=.4?'Mid':'Low';
+    return '<tr><td>#'+r.rank+'</td><td class="'+cls+'">'+r.score.toFixed(4)+'</td><td style="font-family:monospace;color:#60a5fa">'+r.id+'</td><td class="'+cls+'">'+fit+'</td><td style="color:#aaa">'+r.why+'</td></tr>';
   }).join('');
-  document.getElementById('resultCard').style.display='block';
+  document.getElementById('out').style.display = 'block';
 }
 
-function doDownload(){
-  var rows=[['candidate_id','rank','score','reasoning']].concat(lastResults.map(function(r){return[r.candidate_id,r.rank,r.score,'"'+r.reasoning.replace(/"/g,'""')+'"'];}));
-  var csv=rows.map(function(r){return r.join(',');}).join('\n');
-  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='team-hydra_ranked.csv';a.click();
+function dl() {
+  var csv = 'candidate_id,rank,score,reasoning\n' + results.map(function(r){return r.id+','+r.rank+','+r.score+',"'+r.why.replace(/"/g,'""')+'"';}).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'team-hydra_ranked.csv';
+  a.click();
 }
 
-function setSt(msg,cls){var el=document.getElementById('st');el.textContent=msg;el.className='st'+(cls?' '+cls:'');}
-
-function loadSample(){
-  var s=[
-    '{"candidate_id":"CAND_0000010","profile":{"anonymized_name":"Amit Sharma","headline":"Senior ML Engineer","location":"Bangalore","country":"India","years_of_experience":7.0,"current_title":"Senior ML Engineer","current_company":"Freshworks","current_company_size":"1001-5000","current_industry":"SaaS"},"career_history":[{"company":"Freshworks","title":"Senior ML Engineer","start_date":"2022-01-01","end_date":null,"duration_months":30,"is_current":true,"industry":"SaaS","company_size":"1001-5000","description":"Built embedding-based candidate ranking and semantic search. Deployed Pinecone vector DB. Designed NDCG evaluation framework."},{"company":"Razorpay","title":"ML Engineer","start_date":"2019-01-01","end_date":"2021-12-31","duration_months":36,"is_current":false,"industry":"Fintech","company_size":"501-1000","description":"RAG pipelines, LLM fine-tuning with LoRA, recommendation systems."}],"education":[{"institution":"IIT Bombay","degree":"B.Tech","field_of_study":"Computer Science","start_year":2014,"end_year":2018,"grade":"8.5","tier":"tier_1"}],"skills":[{"name":"Pinecone","proficiency":"expert","endorsements":45,"duration_months":24},{"name":"Sentence Transformers","proficiency":"expert","endorsements":38,"duration_months":30},{"name":"RAG","proficiency":"advanced","endorsements":30,"duration_months":20},{"name":"Python","proficiency":"expert","endorsements":60,"duration_months":84},{"name":"NDCG","proficiency":"advanced","endorsements":15,"duration_months":18}],"certifications":[],"languages":[],"redrob_signals":{"profile_completeness_score":95,"signup_date":"2024-01-01","last_active_date":"2026-06-18","open_to_work_flag":true,"profile_views_received_30d":45,"applications_submitted_30d":3,"recruiter_response_rate":0.85,"avg_response_time_hours":12,"skill_assessment_scores":{"Pinecone":92,"RAG":88},"connection_count":800,"endorsements_received":120,"notice_period_days":30,"expected_salary_range_inr_lpa":{"min":40,"max":60},"preferred_work_mode":"hybrid","willing_to_relocate":true,"github_activity_score":78,"search_appearance_30d":120,"saved_by_recruiters_30d":15,"interview_completion_rate":0.9,"offer_acceptance_rate":0.7,"verified_email":true,"verified_phone":true,"linkedin_connected":true}}',
-    '{"candidate_id":"CAND_0000001","profile":{"anonymized_name":"Ira Vora","headline":"Backend Engineer NLP","location":"Toronto","country":"Canada","years_of_experience":6.9,"current_title":"Backend Engineer","current_company":"Mindtree","current_company_size":"10001+","current_industry":"IT Services"},"career_history":[{"company":"Mindtree","title":"Backend Engineer","start_date":"2024-03-08","end_date":null,"duration_months":27,"is_current":true,"industry":"IT Services","company_size":"10001+","description":"Streaming pipelines on Kafka. Feature pipelines for NLP models. Embedding retrieval experiments."}],"education":[{"institution":"Lovely Professional University","degree":"B.E.","field_of_study":"Computer Science","start_year":2017,"end_year":2020,"grade":"8.24","tier":"tier_3"}],"skills":[{"name":"NLP","proficiency":"advanced","endorsements":37,"duration_months":26},{"name":"Milvus","proficiency":"advanced","endorsements":40,"duration_months":35},{"name":"Python","proficiency":"advanced","endorsements":30,"duration_months":60}],"certifications":[],"languages":[],"redrob_signals":{"profile_completeness_score":86.9,"signup_date":"2025-10-16","last_active_date":"2026-05-20","open_to_work_flag":true,"profile_views_received_30d":23,"applications_submitted_30d":2,"recruiter_response_rate":0.34,"avg_response_time_hours":177.8,"skill_assessment_scores":{"NLP":38.8},"connection_count":356,"endorsements_received":35,"notice_period_days":60,"expected_salary_range_inr_lpa":{"min":18.7,"max":36.1},"preferred_work_mode":"onsite","willing_to_relocate":false,"github_activity_score":9.2,"search_appearance_30d":249,"saved_by_recruiters_30d":4,"interview_completion_rate":0.71,"offer_acceptance_rate":0.58,"verified_email":true,"verified_phone":true,"linkedin_connected":false}}',
-    '{"candidate_id":"CAND_0000020","profile":{"anonymized_name":"Priya Nair","headline":"Marketing Manager","location":"Mumbai","country":"India","years_of_experience":10.0,"current_title":"Marketing Manager","current_company":"Wipro","current_company_size":"10001+","current_industry":"IT Services"},"career_history":[{"company":"Wipro","title":"Marketing Manager","start_date":"2019-01-01","end_date":null,"duration_months":66,"is_current":true,"industry":"IT Services","company_size":"10001+","description":"Brand campaigns. Used ChatGPT for content."},{"company":"Infosys","title":"Marketing Manager","start_date":"2015-01-01","end_date":"2018-12-31","duration_months":48,"is_current":false,"industry":"IT Services","company_size":"10001+","description":"Campaign management. No ML engineering."}],"education":[{"institution":"Local College","degree":"MBA","field_of_study":"Marketing","start_year":2011,"end_year":2013,"grade":"75%","tier":"tier_4"}],"skills":[{"name":"Python","proficiency":"beginner","endorsements":2,"duration_months":3},{"name":"NLP","proficiency":"beginner","endorsements":0,"duration_months":1}],"certifications":[],"languages":[],"redrob_signals":{"profile_completeness_score":70,"signup_date":"2025-01-01","last_active_date":"2025-08-01","open_to_work_flag":false,"profile_views_received_30d":5,"applications_submitted_30d":0,"recruiter_response_rate":0.1,"avg_response_time_hours":200,"skill_assessment_scores":{},"connection_count":200,"endorsements_received":5,"notice_period_days":90,"expected_salary_range_inr_lpa":{"min":15,"max":20},"preferred_work_mode":"onsite","willing_to_relocate":false,"github_activity_score":-1,"search_appearance_30d":10,"saved_by_recruiters_30d":0,"interview_completion_rate":0.3,"offer_acceptance_rate":-1,"verified_email":true,"verified_phone":false,"linkedin_connected":true}}'
+function sample() {
+  var s = [
+    '{"candidate_id":"CAND_SAMPLE_01","profile":{"anonymized_name":"Amit Sharma","years_of_experience":7,"current_title":"Senior ML Engineer","current_company":"Freshworks","current_industry":"SaaS"},"career_history":[{"company":"Freshworks","title":"Senior ML Engineer","duration_months":30,"is_current":true,"description":"Built embedding-based ranking, semantic search, Pinecone vector DB, NDCG evaluation."},{"company":"Razorpay","title":"ML Engineer","duration_months":36,"is_current":false,"description":"RAG pipelines, LLM fine-tuning with LoRA, recommendation systems."}],"education":[{"institution":"IIT Bombay","field_of_study":"Computer Science","tier":"tier_1"}],"skills":[{"name":"Sentence Transformers","proficiency":"expert","endorsements":38,"duration_months":30},{"name":"Pinecone","proficiency":"expert","endorsements":45,"duration_months":24},{"name":"RAG","proficiency":"advanced","endorsements":30,"duration_months":20},{"name":"Python","proficiency":"expert","endorsements":60,"duration_months":84},{"name":"NDCG","proficiency":"advanced","endorsements":15,"duration_months":18}],"certifications":[],"languages":[],"redrob_signals":{"profile_completeness_score":95,"last_active_date":"2026-06-18","open_to_work_flag":true,"recruiter_response_rate":0.85,"skill_assessment_scores":{"Pinecone":92,"RAG":88},"notice_period_days":30,"github_activity_score":78,"saved_by_recruiters_30d":15,"interview_completion_rate":0.9}}',
+    '{"candidate_id":"CAND_SAMPLE_02","profile":{"anonymized_name":"Ira Vora","years_of_experience":6.9,"current_title":"Backend Engineer","current_company":"Mindtree","current_industry":"IT Services"},"career_history":[{"company":"Mindtree","title":"Backend Engineer","duration_months":27,"is_current":true,"description":"Streaming pipelines on Kafka, NLP model feature pipelines, embedding retrieval experiments."}],"education":[{"institution":"Lovely Professional University","field_of_study":"Computer Science","tier":"tier_3"}],"skills":[{"name":"NLP","proficiency":"advanced","endorsements":37,"duration_months":26},{"name":"Milvus","proficiency":"advanced","endorsements":40,"duration_months":35},{"name":"Python","proficiency":"advanced","endorsements":30,"duration_months":60}],"certifications":[],"languages":[],"redrob_signals":{"profile_completeness_score":86.9,"last_active_date":"2026-05-20","open_to_work_flag":true,"recruiter_response_rate":0.34,"skill_assessment_scores":{"NLP":38.8},"notice_period_days":60,"github_activity_score":9.2,"saved_by_recruiters_30d":4,"interview_completion_rate":0.71}}',
+    '{"candidate_id":"CAND_SAMPLE_03","profile":{"anonymized_name":"Priya Nair","years_of_experience":10,"current_title":"Marketing Manager","current_company":"Wipro","current_industry":"IT Services"},"career_history":[{"company":"Wipro","title":"Marketing Manager","duration_months":66,"is_current":true,"description":"Brand campaigns and digital marketing."},{"company":"Infosys","title":"Marketing Manager","duration_months":48,"is_current":false,"description":"Campaign management. No ML engineering."}],"education":[{"institution":"Local College","field_of_study":"Marketing","tier":"tier_4"}],"skills":[{"name":"Python","proficiency":"beginner","endorsements":2,"duration_months":3}],"certifications":[],"languages":[],"redrob_signals":{"profile_completeness_score":70,"last_active_date":"2025-08-01","open_to_work_flag":false,"recruiter_response_rate":0.1,"skill_assessment_scores":{},"notice_period_days":90,"github_activity_score":-1,"saved_by_recruiters_30d":0,"interview_completion_rate":0.3}}'
   ];
-  setTab('paste');
-  document.getElementById('txt').value=s.join('\n');
-  setSt('3 sample candidates loaded - click Rank Candidates','ok');
+  document.getElementById('txt').value = s.join('\n');
+  msg('3 sample candidates loaded - click Rank Candidates', 'ok');
 }
 </script>
 </body>
