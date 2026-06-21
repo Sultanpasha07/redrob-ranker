@@ -1,0 +1,62 @@
+team_name: "your-team-name-here"
+
+primary_contact:
+  name: "Full Name"
+  email: "primary@example.com"
+  phone: "+91-XXXXXXXXXX"
+
+team_members:
+  - name: "Member 1 Full Name"
+    email: "member1@example.com"
+    role: "Team Lead / ML Engineer"
+
+github_repo: "https://github.com/YOUR_USERNAME/YOUR_REPO"
+
+sandbox_link: "https://replit.com/@YOUR_USERNAME/redrob-ranker"
+
+reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
+
+compute:
+  platform: "Replit (CPU)"
+  cpu_cores: 4
+  ram_gb: 8
+  python_version: "3.11.14"
+  os: "NixOS / Linux"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
+
+ai_tools_used:
+  - "Claude"
+
+ai_usage_summary: |
+  Used Claude to help architect the scoring pipeline and review the approach.
+  All candidate data was processed locally — no candidate data was sent to any LLM.
+  The ranking logic (skill matching, title scoring, behavioral signals, honeypot detection)
+  was designed and implemented by the team.
+
+methodology_summary: |
+  Rule-based ranker with explicit reasoning capture. Five scoring components combined
+  with weighted composite:
+  - Skills (35%): AI/ML skill match against JD requirements, weighted by proficiency,
+    duration, endorsements, and platform assessment scores. Catches keyword stuffing
+    via trust multipliers (endorsements × duration).
+  - Title & Career (30%): Current title classification + career history analysis.
+    Rewards AI/ML titles at product companies; penalizes "all-services" career paths
+    (TCS/Infosys/Wipro/Accenture/etc. without product-company experience) as per JD.
+  - Behavioral signals (18%): Composite of open_to_work_flag, recent activity,
+    recruiter response rate, GitHub activity, notice period, saved-by-recruiters.
+    Treats recently-inactive or unresponsive candidates as effectively unavailable.
+  - Experience (10%): Optimal range 5-9 years per JD; graceful decay outside range.
+  - Education (7%): Tier + field of study relevance.
+  Honeypot detection: profiles with expert skills at 0-duration, extreme expert-skill
+  counts, or impossible career timeline mismatches are auto-scored near 0.
+  Runtime: ~60 seconds for 100K candidates on CPU.
+
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true
