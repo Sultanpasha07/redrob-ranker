@@ -1,9 +1,9 @@
-team_name: "your-team-name-here"
+team_name: "team-hydra"
 
 primary_contact:
-  name: "Full Name"
-  email: "primary@example.com"
-  phone: "+91-XXXXXXXXXX"
+  name: "Md Sulthanpasha"
+  email: "mdsultanpasha07@gmail.com"
+  phone: "+91-7569988209"
 
 team_members:
   - name: "Member 1 Full Name"
