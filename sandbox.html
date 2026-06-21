@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Redrob Candidate Ranker — Sandbox</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#0f0f13;color:#e2e8f0;min-height:100vh;padding:24px}
+  h1{font-size:1.5rem;font-weight:700;color:#a78bfa;margin-bottom:4px}
+  .sub{color:#94a3b8;font-size:.875rem;margin-bottom:24px}
+  .team{display:inline-block;background:#1e1e2e;border:1px solid #2d2d3d;border-radius:20px;padding:4px 12px;font-size:.75rem;color:#a78bfa;margin-bottom:20px}
+  .card{background:#1e1e2e;border:1px solid #2d2d3d;border-radius:12px;padding:20px;margin-bottom:20px}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{padding:8px 16px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid #2d2d3d;background:transparent;color:#64748b;transition:all .15s}
+  .tab.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+  .drop-zone{border:2px dashed #2d2d3d;border-radius:10px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#13131e}
+  .drop-zone:hover,.drop-zone.drag-over{border-color:#7c3aed;background:#1a1228}
+  .drop-zone svg{margin-bottom:12px;opacity:.5}
+  .drop-zone p{color:#64748b;font-size:.875rem}
+  .drop-zone p strong{color:#a78bfa}
+  .drop-zone input[type=file]{display:none}
+  .file-info{display:none;background:#13131e;border:1px solid #2d2d3d;border-radius:8px;padding:12px 16px;margin-top:12px;font-size:.8rem;color:#94a3b8;align-items:center;gap:10px}
+  .file-info.show{display:flex}
+  .file-name{color:#e2e8f0;font-weight:600}
+  .file-clear{margin-left:auto;cursor:pointer;color:#64748b;font-size:1rem;padding:2px 6px;border-radius:4px;border:none;background:transparent;color:#f87171}
+  .file-clear:hover{background:#3b1515}
+  label{display:block;font-size:.8rem;font-weight:600;color:#94a3b8;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+  textarea{width:100%;background:#13131e;border:1px solid #2d2d3d;border-radius:8px;color:#e2e8f0;padding:12px;font-family:monospace;font-size:.8rem;resize:vertical;min-height:150px;outline:none}
+  textarea:focus{border-color:#a78bfa}
+  .row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  button{background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.875rem;font-weight:600;cursor:pointer;transition:background .15s}
+  button:hover{background:#6d28d9}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.secondary{background:transparent;border:1px solid #2d2d3d;color:#94a3b8;padding:8px 14px;font-size:.8rem}
+  button.secondary:hover{border-color:#a78bfa;color:#a78bfa}
+  .status{font-size:.8rem;color:#64748b}
+  .status.ok{color:#34d399}
+  .status.err{color:#f87171}
+  .note{font-size:.75rem;color:#64748b;margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:.8rem}
+  th{background:#13131e;color:#94a3b8;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid #2d2d3d;text-transform:uppercase;font-size:.7rem;letter-spacing:.05em;position:sticky;top:0}
+  td{padding:10px 12px;border-bottom:1px solid #1a1a2e;vertical-align:top}
+  tr:hover td{background:#1a1a28}
+  .rank-col{font-weight:700;color:#a78bfa;width:50px}
+  .score-col{color:#34d399;font-weight:600;width:72px}
+  .cid-col{font-family:monospace;color:#60a5fa;width:130px}
+  .reasoning-col{color:#94a3b8;line-height:1.5}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:600}
+  .badge.high{background:#14532d;color:#4ade80}
+  .badge.mid{background:#1e3a5f;color:#60a5fa}
+  .badge.low{background:#3b1515;color:#f87171}
+  .tbl-wrap{max-height:520px;overflow-y:auto;border-radius:8px;border:1px solid #2d2d3d}
+  .summary{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+  .stat{background:#13131e;border:1px solid #2d2d3d;border-radius:8px;padding:10px 16px;font-size:.8rem}
+  .stat span{display:block;color:#64748b;font-size:.7rem;margin-bottom:2px}
+  .stat strong{color:#e2e8f0;font-size:1rem}
+  #resultCard{display:none}
+  #downloadBtn{display:none}
+</style>
+</head>
+<body>
+
+<h1>🤖 Redrob Candidate Ranker</h1>
+<p class="sub">Sandbox — India Runs Data &amp; AI Challenge · Senior AI Engineer role</p>
+<div class="team">team-hydra</div>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('upload')">📂 Upload .jsonl File</button>
+    <button class="tab" onclick="switchTab('paste')">📋 Paste JSON</button>
+  </div>
+
+  <!-- Upload tab -->
+  <div class="tab-panel active" id="tab-upload">
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+      <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#a78bfa" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+      </svg>
+      <p><strong>Click to upload</strong> or drag &amp; drop a <code>.jsonl</code> file</p>
+      <p style="margin-top:6px;font-size:.75rem">Max 100 candidates for sandbox demo</p>
+      <input type="file" id="fileInput" accept=".jsonl,.json" onchange="onFileSelected(event)"/>
+    </div>
+    <div class="file-info" id="fileInfo">
+      <span>📄</span>
+      <span class="file-name" id="fileName"></span>
+      <span id="fileLines"></span>
+      <button class="file-clear" onclick="clearFile()" title="Remove file">✕</button>
+    </div>
+    <p class="note">Upload a sample from <code>candidates.jsonl</code> (one JSON object per line). The sandbox handles up to 100 lines.</p>
+  </div>
+
+  <!-- Paste tab -->
+  <div class="tab-panel" id="tab-paste">
+    <label>Paste candidates (JSONL — one JSON object per line)</label>
+    <textarea id="pasteInput" placeholder='{"candidate_id":"CAND_0000001","profile":{"current_title":"ML Engineer",...},...}
+{"candidate_id":"CAND_0000002",...}'></textarea>
+    <p class="note">Each line = one candidate profile from <code>candidates.jsonl</code>.</p>
+  </div>
+
+  <div class="row">
+    <button id="rankBtn" onclick="rank()">▶ Rank Candidates</button>
+    <button class="secondary" onclick="loadSample()">Load sample (3 candidates)</button>
+    <button class="secondary" id="downloadBtn" onclick="downloadCSV()">⬇ Download CSV</button>
+    <span class="status" id="status"></span>
+  </div>
+</div>
+
+<div class="card" id="resultCard">
+  <label>Results</label>
+  <div class="summary" id="summary"></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th class="rank-col">Rank</th>
+        <th class="score-col">Score</th>
+        <th class="cid-col">Candidate ID</th>
+        <th style="width:70px">Fit</th>
+        <th class="reasoning-col">Reasoning</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const REQUIRED_SKILLS = new Set([
+  "sentence transformers","sentence-transformers","openai embeddings","bge","e5","embeddings",
+  "embedding","text embeddings","pinecone","weaviate","qdrant","milvus","opensearch",
+  "elasticsearch","faiss","chromadb","pgvector","annoy","ranking","information retrieval",
+  "bm25","learning to rank","learning-to-rank","ndcg","mrr","map@k","reranking","re-ranking",
+  "hybrid search","hybrid retrieval","nlp","natural language processing","transformers","bert",
+  "llm","large language models","rag","retrieval augmented generation","semantic search",
+  "neural search","python","a/b testing","ab testing","offline evaluation","online evaluation"
+]);
+const PREFERRED_SKILLS = new Set([
+  "fine-tuning llms","fine tuning","lora","qlora","peft","xgboost","lightgbm","pytorch",
+  "tensorflow","jax","mlops","kubeflow","mlflow","weights & biases","docker","kubernetes",
+  "recommendation systems","recommender systems","feature engineering","data science",
+  "machine learning","deep learning","neural networks","statistical modeling","sql","aws","gcp"
+]);
+const STRONG_AI = new Set([
+  "ai engineer","ml engineer","machine learning engineer","senior ml engineer","senior ai engineer",
+  "applied scientist","applied ml scientist","research scientist","nlp engineer","nlp scientist",
+  "data scientist","senior data scientist","junior ml engineer","llm engineer","rag engineer",
+  "deep learning engineer","senior applied scientist","applied ml engineer","senior nlp engineer"
+]);
+const MEDIUM_AI = new Set([
+  "software engineer","backend engineer","full stack engineer","data engineer","analytics engineer",
+  "senior software engineer","lead engineer","staff engineer","principal engineer","tech lead"
+]);
+const SERVICES = new Set([
+  "tcs","tata consultancy","infosys","wipro","accenture","cognizant","capgemini",
+  "hcl","tech mahindra","mphasis","hexaware","mindtree","ltimindtree"
+]);
+
+let uploadedLines = null;
+let lastResults = [];
+let activeTab = "upload";
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll(".tab").forEach((t,i) => t.classList.toggle("active", (i===0&&tab==="upload")||(i===1&&tab==="paste")));
+  document.getElementById("tab-upload").classList.toggle("active", tab==="upload");
+  document.getElementById("tab-paste").classList.toggle("active", tab==="paste");
+}
+
+function onDragOver(e) { e.preventDefault(); document.getElementById("dropZone").classList.add("drag-over"); }
+function onDragLeave() { document.getElementById("dropZone").classList.remove("drag-over"); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById("dropZone").classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+}
+function onFileSelected(e) { const f = e.target.files[0]; if (f) readFile(f); }
+
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const lines = e.target.result.split("\
+").map(l=>l.trim()).filter(Boolean);
+    uploadedLines = lines;
+    document.getElementById("fileName").textContent = file.name;
+    document.getElementById("fileLines").textContent = "· " + lines.length + " candidates";
+    const fi = document.getElementById("fileInfo");
+    fi.classList.add("show");
+    setStatus(lines.length > 100 ? "⚠️ Only first 100 will be ranked" : `\${lines.length} candidates loaded — click Rank`, lines.length > 100 ? "err" : "ok");
+  };
+  reader.readAsText(file);
+}
+
+function clearFile() {
+  uploadedLines = null;
+  document.getElementById("fileInfo").classList.remove("show");
+  document.getElementById("fileInput").value = "";
+  setStatus("");
+}
+
+function getLines() {
+  if (activeTab === "upload") return uploadedLines;
+  const raw = document.getElementById("pasteInput").value.trim();
+  return raw ? raw.split("\
+").map(l=>l.trim()).filter(Boolean) : null;
+}
+
+function detectHoneypot(c) {
+  const skills = c.skills || [];
+  const career = c.career_history || [];
+  const yoe = (c.profile || {}).years_of_experience || 0;
+  if (skills.filter(s => s.proficiency === "expert" && (s.duration_months||0)===0).length >= 3) return true;
+  if (skills.filter(s => s.proficiency === "expert").length > 8) return true;
+  const totalM = career.reduce((a,r)=>a+(r.duration_months||0),0);
+  if (yoe > 5 && totalM < 24) return true;
+  return false;
+}
+
+function scoreSkills(c) {
+  const skills = c.skills || [];
+  const assess = ((c.redrob_signals||{}).skill_assessment_scores)||{};
+  let total=0, matched=[];
+  const pm={beginner:.4,intermediate:.7,advanced:.9,expert:1.0};
+  for (const s of skills) {
+    const nl=s.name.toLowerCase(), prof=pm[s.proficiency]||.4;
+    const dur=Math.min(1,(s.duration_months||0)/24)||.3;
+    const end=Math.min(1,.5+(s.endorsements||0)/40);
+    let bonus=0;
+    for (const [k,v] of Object.entries(assess)) {
+      if (k.toLowerCase().includes(nl)||nl.includes(k.toLowerCase())) { bonus=(v/100)*.2; break; }
+    }
+    const trust=prof*dur*end+bonus;
+    const isReq=[...REQUIRED_SKILLS].some(r=>nl.includes(r)||r.includes(nl));
+    const isPref=[...PREFERRED_SKILLS].some(r=>nl.includes(r)||r.includes(nl));
+    if (isReq) { matched.push(s.name); total+=2*trust; }
+    else if (isPref) total+=trust;
+  }
+  const aKeys=Object.keys(assess);
+  if (aKeys.length) {
+    const avg=Object.values(assess).reduce((a,b)=>a+b,0)/aKeys.length;
+    total=Math.min(1,total/12+(avg/100)*.1);
+  } else total=Math.min(1,total/12);
+  return [total,matched.slice(0,4)];
+}
+
+function scoreTitleCareer(c) {
+  const p=c.profile||{}, career=c.career_history||[];
+  const ct=(p.current_title||"").toLowerCase();
+  let ts=STRONG_AI.has(ct)?1:[...STRONG_AI].some(t=>ct.includes(t))?.9:
+    MEDIUM_AI.has(ct)||[...MEDIUM_AI].some(t=>ct.includes(t))?.55:
+    ct.includes("analyst")?.3:
+    ["manager","accountant","designer","writer","support","sales","hr","civil","mechanical","operations"].some(w=>ct.includes(w))?.05:.2;
+  let bonus=0, allSvc=career.length>=2;
+  for (const r of career) {
+    const co=(r.company||"").toLowerCase(), rt=(r.title||"").toLowerCase();
+    const desc=(r.description||"").toLowerCase(), dur=r.duration_months||0;
+    if (![...SERVICES].some(s=>co.includes(s))) allSvc=false;
+    const isAI=[...STRONG_AI].some(t=>rt.includes(t));
+    const isMed=[...MEDIUM_AI].some(t=>rt.includes(t));
+    const aiD=["embeddings","vector","ranking","retrieval","nlp","transformer","pytorch","tensorflow","rag","recommendation","search","llm","fine-tun"].filter(k=>desc.includes(k)).length;
+    if (isAI&&dur>=6) bonus+=.15;
+    else if (isMed&&aiD>=3&&dur>=6) bonus+=.10;
+    else if (aiD>=4) bonus+=.06;
+  }
+  if (allSvc) { ts*=.6; bonus*=.6; }
+  return Math.min(1,ts+Math.min(.4,bonus));
+}
+
+function scoreExp(c) {
+  const y=(c.profile||{}).years_of_experience||0;
+  return y>=5&&y<=9?1:((y>=4&&y<5)||(y>9&&y<=11))?.8:((y>=3&&y<4)||(y>11&&y<=13))?.6:((y>=2&&y<3)||(y>13&&y<=15))?.4:.2;
+}
+
+function scoreBehavioral(c) {
+  const s=c.redrob_signals||{}, today=new Date("2026-06-21");
+  let sc=0;
+  sc+=(s.open_to_work_flag?1:0)*.25;
+  const la=s.last_active_date?(today-new Date(s.last_active_date))/(864e5):999;
+  sc+=(la<=30?1:la<=90?.8:la<=180?.5:la<=365?.3:0)*.20;
+  sc+=Math.min(1,(s.recruiter_response_rate||0)/.5)*.15;
+  sc+=((s.profile_completeness_score||0)/100)*.10;
+  const gh=s.github_activity_score??-1; sc+=(gh>=0?gh/100:0)*.10;
+  sc+=(s.interview_completion_rate||0)*.08;
+  sc+=Math.min(1,(s.saved_by_recruiters_30d||0)/10)*.07;
+  const n=s.notice_period_days??60; sc+=(n<=30?1:n<=60?.7:n<=90?.4:.2)*.05;
+  return sc;
+}
+
+function scoreEdu(c) {
+  const edu=c.education||[]; if (!edu.length) return .3;
+  const tm={tier_1:1,tier_2:.75,tier_3:.5,tier_4:.3,unknown:.35};
+  let best=0;
+  for (const e of edu) {
+    const t=tm[e.tier]||.3, f=(e.field_of_study||"").toLowerCase();
+    const ai=["computer science","machine learning","artificial intelligence","data science","statistics","mathematics","information technology","electronics","electrical"].some(x=>f.includes(x));
+    best=Math.max(best,t*.5+(ai?1:.5)*.3+.7*.2);
+  }
+  return best;
+}
+
+function computeScore(c) {
+  if (detectHoneypot(c)) return [0.01,"Honeypot: impossible profile signals detected."];
+  const [skillS,matched]=scoreSkills(c);
+  const titleS=scoreTitleCareer(c), expS=scoreExp(c);
+  const behS=scoreBehavioral(c), eduS=scoreEdu(c);
+  let comp=skillS*.35+titleS*.30+expS*.10+behS*.18+eduS*.07;
+  const s=c.redrob_signals||{}, p=c.profile||{};
+  if (!s.open_to_work_flag&&behS<.3) comp*=.75;
+  comp=Math.max(0,Math.min(1,comp));
+  const title=p.current_title||"N/A", years=p.years_of_experience||0;
+  const rr=s.recruiter_response_rate||0, la=s.last_active_date||"N/A";
+  const notice=s.notice_period_days??"N/A";
+  const sk=matched.length?matched.slice(0,3).join(", "):"no core AI skills";
+  const parts=[
+    titleS>=.8?`strong AI/ML title (\${title})`:titleS>=.5?`adjacent title (\${title})`:`non-technical title (\${title})`,
+    `\${years}yr exp`, matched.length?`skills: \${sk}`:"no core AI skill match",
+    `response rate \${Math.round(rr*100)}%`,
+    s.open_to_work_flag?"open to work":"not open to work",
+    `\${notice}d notice`, `last active \${la`
+  ];
+  return [Math.round(comp*1e4)/1e4, parts.slice(0,6).join("; ")+"."];
+}
+
+function rank() {
+  const lines = getLines();
+  if (!lines || !lines.length) {
+    setStatus(activeTab==="upload" ? "⚠️ Upload a .jsonl file first." : "⚠️ Paste some candidates first.", "err");
+    return;
+  }
+  const capped = lines.slice(0,100);
+  setStatus("Scoring " + capped.length + " candidates...");
+  document.getElementById("rankBtn").disabled = true;
+
+  setTimeout(() => {
+    try {
+      const candidates = capped.map((l,i) => {
+        try { return JSON.parse(l); }
+        catch(e) { throw new Error("Line "+(i+1)+" is not valid JSON: "+l.slice(0,40)); }
+      });
+      const scored = candidates.map(c => {
+        const [score,reasoning]=computeScore(c);
+        return {candidate_id:c.candidate_id||"UNKNOWN", score, reasoning};
+      });
+      scored.sort((a,b)=>b.score-a.score||a.candidate_id.localeCompare(b.candidate_id));
+      lastResults = scored.map((s,i)=>({...s,rank:i+1}));
+      renderResults(lastResults, candidates.length);
+      document.getElementById("downloadBtn").style.display="inline-block";
+      setStatus("✅ Ranked "+candidates.length+" candidates"+(lines.length>100?" (showing top 100 of "+lines.length+")":""), "ok");
+    } catch(e) {
+      setStatus("❌ "+e.message, "err");
+    }
+    document.getElementById("rankBtn").disabled=false;
+  }, 10);
+}
+
+function renderResults(rows, total) {
+  const high=rows.filter(r=>r.score>=.7).length;
+  const mid=rows.filter(r=>r.score>=.4&&r.score<.7).length;
+  const low=rows.filter(r=>r.score<.4).length;
+  document.getElementById("summary").innerHTML=`
+    <div class="stat"><span>Total ranked</span><strong>\${total}</strong></div>
+    <div class="stat"><span>High fit (≥0.7)</span><strong style="color:#4ade80">\${high}</strong></div>
+    <div class="stat"><span>Mid fit (0.4–0.7)</span><strong style="color:#60a5fa">\${mid}</strong></div>
+    <div class="stat"><span>Low fit (&lt;0.4)</span><strong style="color:#f87171">\${low}</strong></div>
+    <div class="stat"><span>Top score</span><strong style="color:#a78bfa">\${rows[0]?.score.toFixed(4)||"—"}</strong></div>
+  \
