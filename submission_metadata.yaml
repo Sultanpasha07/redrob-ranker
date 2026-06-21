@@ -12,7 +12,7 @@ team_members:
 
 github_repo: "https://github.com/Sultanpasha07/redrob-ranker"
 
-sandbox_link: "https://e6c15009-c2df-44b3-9376-3e7a39928ba3-00-2ktc15hfkb2t2.pike.replit.dev/api/sandbox"
+sandbox_link: "https://sultanpasha07.github.io/redrob-ranker/sandbox.html"
 
 reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
 
